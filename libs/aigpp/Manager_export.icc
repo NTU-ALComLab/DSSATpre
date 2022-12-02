@@ -1,0 +1,147 @@
+/**************************************************************
+ *
+ *       AIGPP // Manager_export.icc
+ *
+ *       Copyright (C) 2008 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 532 $
+ *         $Author: pigorsch $
+ *
+ ***************************************************************/
+
+template <typename T>
+inline std::vector<std::vector<T>>
+aigpp::Manager::createCNF(const aigpp::EdgeRef& root, std::map<T, aigpp::EdgeRef>& mapping, T& rootLiteral,
+                          T& nextFreeIndex, bool updateMapping) const
+{
+    typedef std::vector<T>       Clause;
+    typedef std::map<T, EdgeRef> MapT2E;
+    typedef std::map<Node*, T>   MapN2T;
+
+    std::vector<Clause> clauses;
+
+    if (root.isConstant()) {
+        if (structurallyFalse(root)) {
+            /* add an empty clause */
+            clauses.push_back(Clause());
+
+            rootLiteral = 0;
+        } else {
+            rootLiteral = 1;
+        }
+
+        return clauses;
+    }
+
+    std::stack<Node*> pending;
+    MapN2T            reversemapping;
+
+    for (typename MapT2E::const_iterator p = mapping.begin(); p != mapping.end(); ++p) {
+        assert(p->first < nextFreeIndex);
+
+        const InternalEdgeRef& e = p->second.getInternal();
+
+        /* ensure that the map contains variables only */
+        assert(!(e.isConstant()));
+        // assert( e.node()->isVar() );
+
+        /* check for duplicates */
+        assert(reversemapping.find(e.node()) == reversemapping.end());
+
+        if (e.isInverted()) {
+            reversemapping[e.node()] = (2 * p->first ^ 1);
+        } else {
+            reversemapping[e.node()] = 2 * p->first;
+        }
+    }
+
+    if (root.isVariable()) {
+        /* ensure that the variable is contained in the reversemapping */
+        typename MapN2T::const_iterator p = reversemapping.find(root.getInternal().node());
+        assert(p != reversemapping.end());
+
+        /* set outputLit to the literal used to encode the variable (negate is root
+         * is negated) */
+        rootLiteral = p->second ^ (root.isInverted() ? 1 : 0);
+
+        /* return an empty clause set */
+        return clauses;
+    }
+
+    pending.push(root.getInternal().node());
+
+    while (!pending.empty()) {
+        Node* n = pending.top();
+
+        /* node already processed */
+        if (reversemapping.find(n) != reversemapping.end()) {
+            pending.pop();
+        } else {
+            /* current node must not be a variable, because all variables must be
+             * present in the mapping which is checked before
+             */
+            assert(!(n->isVar()));
+
+            typename MapN2T::const_iterator p1, p2;
+
+            /* parent1 not processed yet */
+            if ((p1 = reversemapping.find(n->parent1().node())) == reversemapping.end()) {
+                pending.push(n->parent1().node());
+            }
+            /* parent2 not processed yet */
+            else if ((p2 = reversemapping.find(n->parent2().node())) == reversemapping.end()) {
+                pending.push(n->parent2().node());
+            }
+            /* both parents processed */
+            else {
+                pending.pop();
+
+                /* get literals */
+                T tseitinLit = 2 * nextFreeIndex;
+                ++nextFreeIndex;
+
+                T lit1   = p1->second ^ (n->parent1().isInverted() ? 1 : 0);
+                T lit2   = p2->second ^ (n->parent2().isInverted() ? 1 : 0);
+                T litAnd = tseitinLit ^ (n->isNAND() ? 1 : 0);
+
+                /* update mapping(s) */
+                reversemapping[n] = tseitinLit;
+
+                if (updateMapping) {
+                    mapping[tseitinLit / 2] = EdgeRef(_extRefTable, InternalEdgeRef(n));
+                }
+
+                /* create clauses */
+
+                /*  x = y * z <-> ( !x + y ) * ( !x + z ) * ( x + !y + !z ) */
+                Clause clause2(2), clause3(3);
+
+                clause2[0] = litAnd ^ 1;
+                clause2[1] = lit1;
+                clauses.push_back(clause2);
+
+                /*clause2[0] = litAnd ^ 1;*/
+                clause2[1] = lit2;
+                clauses.push_back(clause2);
+
+                clause3[0] = litAnd;
+                clause3[1] = lit1 ^ 1;
+                clause3[2] = lit2 ^ 1;
+                clauses.push_back(clause3);
+            }
+        }
+    }
+
+    typename MapN2T::const_iterator proot = reversemapping.find(root.getInternal().node());
+    assert(proot != reversemapping.end());
+
+    rootLiteral = proot->second ^ (root.isInverted() ? 1 : 0);
+
+    return clauses;
+}

@@ -1,0 +1,96 @@
+/**************************************************************
+ *
+ *       AIGPP Package // SimVector.icc
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 717 $
+ *         $Author: pigorsch $
+ **
+ ***************************************************************/
+
+inline std::size_t
+aigpp::SimVector::size() const
+{
+    return BinCount;
+}
+
+inline unsigned long
+aigpp::SimVector::hash() const
+{
+    return _hash;
+}
+
+inline unsigned long
+aigpp::SimVector::hashInverted() const
+{
+    unsigned long h = 0ul;
+
+    const BinType*       b = _bins;
+    const unsigned long* p = Primes;
+
+    for (std::size_t i = size(); i != 0; --i, ++b, ++p) {
+        h ^= (~*b) * (*p);
+    }
+
+    return h;
+}
+
+inline void
+aigpp::SimVector::setBin(std::size_t bin, aigpp::SimVector::BinType value)
+{
+    _hash ^= Primes[bin] * _bins[bin];
+    _bins[bin] = value;
+    _hash ^= Primes[bin] * _bins[bin];
+}
+
+inline const aigpp::SimVector::BinType& aigpp::SimVector::operator[](std::size_t index) const
+{
+    return _bins[index];
+}
+
+inline bool
+aigpp::SimVector::getBit(std::size_t index) const
+{
+    return (_bins[index / BinSize] >> (index % BinSize)) & 1ul;
+}
+
+inline bool
+aigpp::SimVector::operator<(const aigpp::SimVector& s) const
+{
+    const BinType* p1 = _bins;
+    const BinType* p2 = s._bins;
+
+    for (unsigned int i = size(); i != 0; --i, ++p1, ++p2) {
+        if (*p1 == *p2) { /* nothing */
+        } else if (*p1 < *p2)
+            return true;
+        else
+            return false;
+    }
+
+    return false;
+}
+
+inline bool
+aigpp::SimVector::operator==(const aigpp::SimVector& s) const
+{
+    const BinType* p1 = _bins;
+    const BinType* p2 = s._bins;
+
+    for (unsigned int i = 0; i != size(); ++i, ++p1, ++p2) {
+        if (*p1 != *p2) return false;
+    }
+
+    return true;
+}
+
+inline bool
+aigpp::SimVector::operator!=(const aigpp::SimVector& s) const
+{
+    return !operator==(s);
+}

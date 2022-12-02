@@ -1,0 +1,43 @@
+/**************************************************************
+ *
+ *       AIGPP Package // EdgeRef_operations.cc
+ *
+ *       Copyright (C) 2007 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: $
+ *         $Author: $
+ *
+ ***************************************************************/
+
+inline aigpp::EdgeRef aigpp::operator!(const aigpp::EdgeRef& e)
+{
+    return Not(e);
+}
+
+inline aigpp::EdgeRef aigpp::operator&(const aigpp::EdgeRef& e1, const aigpp::EdgeRef& e2)
+{
+    return And(e1, e2);
+}
+
+inline aigpp::EdgeRef aigpp::operator*(const aigpp::EdgeRef& e1, const aigpp::EdgeRef& e2)
+{
+    return And(e1, e2);
+}
+
+inline aigpp::EdgeRef
+aigpp::operator|(const aigpp::EdgeRef& e1, const aigpp::EdgeRef& e2)
+{
+    return Or(e1, e2);
+}
+
+inline aigpp::EdgeRef
+aigpp::operator+(const aigpp::EdgeRef& e1, const aigpp::EdgeRef& e2)
+{
+    return Or(e1, e2);
+}

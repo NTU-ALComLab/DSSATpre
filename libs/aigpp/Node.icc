@@ -1,0 +1,216 @@
+/**************************************************************
+ *
+ *       AIGPP Package // Manager.icc
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 649 $
+ *         $Author: pigorsch $
+ *         $Date$
+ *
+ ***************************************************************/
+
+inline aigpp::Manager*
+aigpp::Node::manager() const
+{
+    return _manager;
+}
+
+inline void
+aigpp::Node::ref()
+{
+    ++_refCount;
+}
+
+inline void
+aigpp::Node::deref()
+{
+    --_refCount;
+}
+
+inline int
+aigpp::Node::refCount() const
+{
+    return _refCount;
+}
+
+inline bool
+aigpp::Node::isVar() const
+{
+    return (_index <= 0);
+}
+
+inline int
+aigpp::Node::varIndex() const
+{
+    return -_index;
+}
+
+inline bool
+aigpp::Node::isNAND() const
+{
+    return flag<FLAG_ISNAND>();
+}
+
+inline bool
+aigpp::Node::isReduced() const
+{
+    return flag<FLAG_ISREDUCED>();
+}
+
+inline const aigpp::Edge&
+aigpp::Node::parent1() const
+{
+    return _parent1;
+}
+
+inline const aigpp::Edge&
+aigpp::Node::parent2() const
+{
+    return _parent2;
+}
+
+inline const aigpp::SimVector&
+aigpp::Node::sim() const
+{
+    return *_sim;
+}
+
+inline aigpp::SimVector&
+aigpp::Node::sim()
+{
+    return *_sim;
+}
+
+inline void
+aigpp::Node::updateSim()
+{
+    _sim->update(parent1().node()->sim(), parent1().isInverted(), parent2().node()->sim(), parent2().isInverted(),
+                 isNAND());
+}
+
+inline void
+aigpp::Node::updateSim(unsigned int bin)
+{
+    _sim->updateBin(parent1().node()->sim(), parent1().isInverted(), parent2().node()->sim(), parent2().isInverted(),
+                    isNAND(), bin);
+}
+
+#ifdef USE_TEMPSIM
+inline unsigned long
+aigpp::Node::tempSim() const
+{
+    return _tempSim;
+}
+
+inline void
+aigpp::Node::updateTempSim()
+{
+    /* assert( !isVar() ); */
+
+    _tempSim = (parent1().isInverted() ? ~(parent1().node()->tempSim()) : parent1().node()->tempSim())
+               & (parent2().isInverted() ? ~(parent2().node()->tempSim()) : parent2().node()->tempSim());
+
+    if (isNAND()) _tempSim = ~_tempSim;
+}
+
+inline void
+aigpp::Node::setTempSim(unsigned long s)
+{
+    _tempSim = s;
+}
+#endif
+
+inline aigpp::Node*
+aigpp::Node::next() const
+{
+    return _nextNode;
+}
+
+inline Minisat::Var
+aigpp::Node::satVar() const
+{
+    return _satVar;
+}
+
+inline bool
+aigpp::Node::isSatVarValid() const
+{
+    return (_satVar != var_Undef);
+}
+
+inline void
+aigpp::Node::setSatVar(Minisat::Var v)
+{
+    _satVar = v;
+}
+
+inline void
+aigpp::Node::invalidateSatVar()
+{
+    _satVar = var_Undef;
+}
+
+inline bool
+aigpp::Node::isCacheValid() const
+{
+    return flag<FLAG_CACHEVALID>();
+}
+
+inline bool
+aigpp::Node::isZCacheValid() const
+{
+    return flag<FLAG_ZCACHEVALID>();
+}
+
+template <unsigned int FLAGS>
+inline bool
+aigpp::Node::flag() const
+{
+    return ((_flags & FLAGS) != 0);
+}
+
+template <unsigned int FLAGS>
+inline bool
+aigpp::Node::allFlags() const
+{
+    return ((_flags & FLAGS) == FLAGS);
+}
+
+template <unsigned int FLAGS>
+inline void
+aigpp::Node::setFlag() const
+{
+    _flags |= FLAGS;
+}
+
+template <unsigned int FLAGS>
+inline void
+aigpp::Node::unsetFlag() const
+{
+    _flags &= ~FLAGS;
+}
+
+inline void
+aigpp::Node::clearFlags() const
+{
+    _flags = 0;
+}
+
+template <unsigned int FLAGS>
+inline void
+aigpp::Node::setFlagRecursive() const
+{
+    if (allFlags<FLAGS>()) return;
+
+    setFlag<FLAGS>();
+
+    if (isVar()) return;
+
+    parent1().node()->setFlagRecursive<FLAGS>();
+    parent2().node()->setFlagRecursive<FLAGS>();
+}

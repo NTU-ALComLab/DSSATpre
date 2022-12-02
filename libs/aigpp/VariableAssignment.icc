@@ -1,0 +1,236 @@
+/**************************************************************
+ *
+ *       AIGPP Package // VariableAssignment.icc
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 717 $
+ *         $Author: pigorsch $
+ *
+ ***************************************************************/
+
+inline aigpp::VariableAssignment::VariableAssignment(std::size_t maxVar) : _bins(), _maxUnassignedBin(0)
+{
+    reserve(maxVar);
+}
+
+inline void
+aigpp::VariableAssignment::set(std::size_t var, aigpp::VariableAssignment::Assignment a)
+{
+    switch (a) {
+        case Positive:
+            setPositive(var);
+            break;
+        case Negative:
+            setNegative(var);
+            break;
+        case Unassigned:
+            setUnassigned(var);
+            break;
+        default:
+            NEVER_GET_HERE;
+    }
+}
+
+inline void
+aigpp::VariableAssignment::setPositive(std::size_t var)
+{
+    const std::size_t bin    = var / VariablesPerBin;
+    const std::size_t binpos = 2 * (var % VariablesPerBin);
+
+    /*
+      Append empty bins.
+    */
+    if (bin >= _bins.size()) {
+        _bins.resize(bin + 1, 0);
+    } else {
+        /*
+          Clear bits at binpos
+        */
+        _bins[bin] &= ~((BinType)Mask << binpos);
+    }
+
+    /*
+      Set bits at binpos
+    */
+    _bins[bin] |= ((BinType)Positive << binpos);
+
+    /*
+      update _maxUnassignedBin
+    */
+    if (bin >= _maxUnassignedBin) {
+        _maxUnassignedBin = bin + 1;
+    }
+}
+
+inline void
+aigpp::VariableAssignment::setNegative(std::size_t var)
+{
+    const std::size_t bin    = var / VariablesPerBin;
+    const std::size_t binpos = 2 * (var % VariablesPerBin);
+
+    /*
+     * Append empty bins.
+     */
+    if (bin >= _bins.size()) {
+        _bins.resize(bin + 1, 0);
+    } else {
+        /*
+          Clear bits at binpos
+        */
+        _bins[bin] &= ~((BinType)Mask << binpos);
+    }
+
+    /*
+      Set bits at binpos
+    */
+    _bins[bin] |= ((BinType)Negative << binpos);
+
+    /*
+      update _maxAssignedBin
+    */
+    if (bin >= _maxUnassignedBin) {
+        _maxUnassignedBin = bin + 1;
+    }
+}
+
+inline void
+aigpp::VariableAssignment::setUnassigned(std::size_t var)
+{
+    const std::size_t bin = var / VariablesPerBin;
+
+    /*
+      Trying to clear bits in an empty bin
+    */
+    if (bin >= _maxUnassignedBin) {
+        return;
+    }
+
+    const std::size_t binpos = 2 * (var % VariablesPerBin);
+
+    /*
+      Clear bits at binpos
+    */
+    _bins[bin] &= ~(Mask << binpos);
+
+    /*
+      The last bin became empty.
+    */
+    if (bin + 1 == _maxUnassignedBin && _bins[bin] == 0) {
+        for (;;) {
+            --_maxUnassignedBin;
+
+            if (_maxUnassignedBin == 0) break;
+            if (_bins[_maxUnassignedBin - 1] != 0) break;
+        }
+    }
+}
+
+inline aigpp::VariableAssignment::Assignment
+aigpp::VariableAssignment::get(std::size_t var) const
+{
+    const std::size_t bin = var / VariablesPerBin;
+    if (bin >= _maxUnassignedBin) {
+        return Unassigned;
+    }
+
+    const std::size_t binpos = 2 * (var % VariablesPerBin);
+    return (Assignment)((_bins[bin] >> binpos) & Mask);
+}
+
+inline void
+aigpp::VariableAssignment::reserve(std::size_t maxVar)
+{
+    _bins.reserve((maxVar / VariablesPerBin) + 1);
+}
+
+inline bool
+aigpp::VariableAssignment::operator==(const aigpp::VariableAssignment& v) const
+{
+    if (_maxUnassignedBin != v._maxUnassignedBin) {
+        return false;
+    }
+
+    for (std::size_t i = 0; i < _maxUnassignedBin; ++i) {
+        if (_bins[i] != v._bins[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+inline bool
+aigpp::VariableAssignment::operator!=(const aigpp::VariableAssignment& v) const
+{
+    return !(operator==(v));
+}
+
+inline bool
+aigpp::VariableAssignment::operator<(const aigpp::VariableAssignment& v) const
+{
+    if (_maxUnassignedBin < v._maxUnassignedBin) {
+        return true;
+    } else if (_maxUnassignedBin > v._maxUnassignedBin) {
+        return false;
+    } else /* if(  _maxUnassignedBin == v._maxUnassignedBin ) */
+    {
+        for (std::size_t i = 0; i < _maxUnassignedBin; ++i) {
+            if (_bins[i] < v._bins[i]) {
+                return true;
+            } else if (_bins[i] > v._bins[i]) {
+                return false;
+            } else /* if( _bins[ i ] == v._bins[ i ] ) */
+            {
+                continue;
+            }
+        }
+    }
+
+    return false;
+}
+
+inline bool
+aigpp::VariableAssignment::isSuperSetOf(const aigpp::VariableAssignment& v) const
+{
+    if (v._maxUnassignedBin > _maxUnassignedBin) {
+        return false;
+    }
+
+    for (std::size_t i = 0; i < v._maxUnassignedBin; ++i) {
+        if (_bins[i] != (_bins[i] | v._bins[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+inline bool
+aigpp::VariableAssignment::compatible(const aigpp::VariableAssignment& v) const
+{
+    std::size_t m = VariablesPerBin * std::min(_maxUnassignedBin, v._maxUnassignedBin);
+
+    for (std::size_t i = 0; i < m; ++i) {
+        if ((get(i) | v.get(i)) == Mask) return false;
+    }
+
+    return true;
+}
+
+inline void
+aigpp::VariableAssignment::mergeWith(const aigpp::VariableAssignment& v)
+{
+    if (_maxUnassignedBin < v._maxUnassignedBin) {
+        _maxUnassignedBin = v._maxUnassignedBin;
+        _bins.resize(_maxUnassignedBin, 0);
+    }
+
+    for (std::size_t i = 0; i < v._bins.size(); ++i) {
+        _bins[i] |= v._bins[i];
+    }
+}

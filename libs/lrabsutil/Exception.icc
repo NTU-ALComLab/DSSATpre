@@ -1,0 +1,37 @@
+/**************************************************************
+*       
+*       LRABS // Exception.icc
+*
+*       Copyright (C) 2006 Florian Pigorsch
+*
+*       Author:
+*         Florian Pigorsch
+*         University of Freiburg
+*         pigorsch@informatik.uni-freiburg.de
+*
+*       Last revision:
+*         $Revision: 128 $
+*         $Author: pigorsch $
+*         $Date$
+*
+***************************************************************/
+
+template<typename T>
+inline
+lrabs::Exception& 
+lrabs::Exception::
+operator<<( const T& data )
+{
+  std::ostringstream oss;
+  oss << data;
+  _message += oss.str();
+  return *this;
+}
+
+inline
+const char* 
+lrabs::Exception::
+what() const noexcept
+{
+  return _message.c_str();
+}

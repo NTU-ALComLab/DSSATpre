@@ -1,0 +1,34 @@
+/**************************************************************
+ *
+ *       AIGPP // RewritingManager.icc
+ *
+ *       Copyright (C) 2008 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 452 $
+ *         $Author: pigorsch $
+ *
+ ***************************************************************/
+
+inline void
+aigpp::RewritingManager::markNode(unsigned int nodeindex)
+{
+    _markedNodes[nodeindex] = _mark;
+}
+
+inline bool
+aigpp::RewritingManager::isNodeMarked(unsigned int nodeindex) const
+{
+    return _markedNodes[nodeindex] == _mark;
+}
+
+inline void
+aigpp::RewritingManager::clearMarks()
+{
+    ++_mark;
+}

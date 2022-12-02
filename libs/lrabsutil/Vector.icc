@@ -1,0 +1,49 @@
+namespace lrabs
+{
+    template<typename T>
+    inline
+    Vector<T>&
+    Vector<T>::
+    operator+( const T& t )
+    {
+        _data.push_back( t );
+        return *this;
+    }
+
+    template<typename T>
+    inline
+    Vector<T>&
+    Vector<T>::
+    operator<<( const T& t )
+    {
+        _data.push_back( t );
+        return *this;
+    }
+
+    template<typename T>
+    Vector<T>&
+    Vector<T>::
+    operator+( const Vector<T>& t )
+    {
+        _data.insert( _data.end(), t._data.cbegin(), t._data.cend() );
+        return *this;
+    }
+
+    template<typename T>
+    Vector<T>&
+    Vector<T>::
+    operator<<( const Vector<T>& t )
+    {
+        _data.insert( _data.end(), t._data.cbegin(), t._data.cend() );
+        return *this;
+    }
+
+    template<typename T>
+    inline
+    std::vector<T>
+    Vector<T>::
+    stdvec() const
+    {
+        return _data;
+    }
+}

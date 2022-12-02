@@ -1,0 +1,126 @@
+/**************************************************************
+ *       
+ *       LRABS Utilities // String.icc
+ *
+ *       Copyright (C) 2007 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 552 $
+ *         $Author: pigorsch $
+ *         $Date$
+ *
+ ***************************************************************/
+
+namespace lrabs
+{
+    template<typename T>
+    inline
+    std::string
+    toString( const T& value )
+    {
+        std::ostringstream oss;
+        oss << value;
+        return oss.str();
+    }
+    
+    template<>
+    inline
+    std::string
+    toString( const std::string& value )
+    {
+        return value;
+    }
+    
+    template<typename T>
+    inline
+    T
+    fromString( const std::string& s )
+    {
+        std::istringstream iss;
+        iss.str( s );
+        
+        T value;
+        iss >> value;
+        
+        // s was not parsed completely
+        if( !( iss.eof() ) )
+        {
+            Exception e;
+            e << "ERROR: fromString<T>, parsing string \"" << s << "\" failed";
+            throw e;
+        }
+        
+        return value;
+    }
+    
+    template<>
+    inline
+    std::string
+    fromString( const std::string& s )
+    {
+        return s;
+    }
+    
+    template<>
+    inline
+    bool
+    fromString( const std::string& s )
+    {
+        if( s == "true" || s == "True" || s == "TRUE" || s == "1" )
+        {
+            return true;
+        }
+        else if( s == "false" || s == "False" || s == "FALSE" || s == "0" )
+        {
+            return false;
+        }
+        else
+        {
+            Exception e;
+            e << "ERROR: fromString<bool>, parsing string \"" << s << "\" failed";
+            throw e;
+            
+            // make compiler happy
+            return true;
+        }
+    }
+
+    template<typename STRING_CONTAINER>
+    inline
+    int
+    split( const std::string& input, const std::string& delimiter, STRING_CONTAINER& result )
+    {
+        if( delimiter.empty() )
+        {
+            Exception e;
+            e << "ERROR: empty delimiter string passed to split function";
+            throw e;
+        }
+        
+        result.clear();
+
+        int lastpos = 0;
+        while( true )
+        {
+            int pos = input.find( delimiter, lastpos );
+            if( pos < 0 )
+            {
+                result.push_back( input.substr( lastpos ) );
+                break;
+            }
+            else
+            {
+                result.push_back( input.substr( lastpos, pos - lastpos ) );
+                lastpos = pos + delimiter.size();
+            }
+        }
+
+        return result.size();
+    }
+            
+}

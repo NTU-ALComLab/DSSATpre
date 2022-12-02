@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.5)
+
+add_subdirectory("aigpp")
+add_subdirectory("antom")
+add_subdirectory("cudd-3.0.0")
+add_subdirectory("easylogging")
+add_subdirectory("lrabsutil")
+add_subdirectory("minisat")
+add_subdirectory("minicraig")
+add_subdirectory("picosat")

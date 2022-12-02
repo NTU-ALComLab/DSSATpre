@@ -1,0 +1,153 @@
+/**************************************************************
+ *       
+ *       LRABS // SimpleStack.icc
+ *       
+ *       Copyright (C) 2008 Florian Pigorsch
+ *       
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *       
+ *       Last revision:
+ *         $Revision: 715 $
+ *         $Author: pigorsch $
+ *       
+ ***************************************************************/
+
+template<typename T>
+inline
+lrabs::SimpleStack<T>::
+SimpleStack( std::size_t initialcapacity )
+    :_top(-1)
+{
+    assert( initialcapacity > 0 );
+
+    _capacity = initialcapacity;
+    _data = new T[_capacity];
+}
+
+template<typename T>
+inline
+lrabs::SimpleStack<T>::
+SimpleStack( const lrabs::SimpleStack<T>& s )
+    :_top(s._top),
+     _capacity(s._capacity)
+{
+    _data = new T[_capacity];
+    std::copy( s._data, s._data + s.size(), _data );
+}
+
+template<typename T>
+inline   
+lrabs::SimpleStack<T>::
+~SimpleStack()
+{
+    delete[] _data;
+}
+
+template<typename T>
+inline
+lrabs::SimpleStack<T>& 
+lrabs::SimpleStack<T>::
+operator=( const lrabs::SimpleStack<T>& s )
+{
+    _top = s._top;
+    
+    if( _capacity < s._capacity )
+    {
+        delete[] _data;
+        _capacity = s._capacity;
+        _data = new T[_capacity];
+    }
+    
+    std::copy( s._data, s._data + s.size(), _data );
+    
+    return *this;
+}
+
+template<typename T>
+inline
+bool 
+lrabs::SimpleStack<T>::
+empty() const
+{
+    return _top < 0;
+}
+
+template<typename T>
+inline
+const T& 
+lrabs::SimpleStack<T>::
+top() const
+{
+    return _data[_top];
+}
+
+template<typename T>
+inline
+void 
+lrabs::SimpleStack<T>::
+pop()
+{
+    --_top;
+}
+
+template<typename T>
+inline
+void 
+lrabs::SimpleStack<T>::
+push( const T& t )
+{
+    ++_top;
+    if( (std::size_t)_top >= _capacity )
+    {
+        std::size_t newcapacity = 2 * _capacity;
+        T* newdata = new T[newcapacity];
+
+        std::copy( _data, _data + _capacity, newdata );
+        
+        delete[] _data;
+        _data = newdata;
+        
+        _capacity = newcapacity;
+    }
+    
+    _data[_top] = t;
+}
+
+template<typename T>
+inline
+void 
+lrabs::SimpleStack<T>::
+clear()
+{
+    _top = -1;
+}
+
+template<typename T>
+inline
+std::size_t
+lrabs::SimpleStack<T>::
+size() const
+{
+    return (std::size_t)(_top + 1);
+}
+
+template<typename T>
+inline
+const T&
+lrabs::SimpleStack<T>::
+operator[]( std::size_t index ) const
+{
+    return _data[index];
+}
+
+template<typename T>
+inline
+std::size_t
+lrabs::SimpleStack<T>::
+capacity() const
+{
+    return _capacity;
+}

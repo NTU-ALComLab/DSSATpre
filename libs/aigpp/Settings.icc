@@ -1,0 +1,52 @@
+/**************************************************************
+ *
+ *       AIGPP Package // Settings.icc
+ *
+ *       Copyright (C) 2007 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 373 $
+ *         $Author: pigorsch $
+ *
+ ***************************************************************/
+
+inline bool
+aigpp::Settings::getSimVectorMerging() const
+{
+    return _simVectorMerging;
+}
+
+inline void
+aigpp::Settings::setSimVectorMerging(bool b)
+{
+    _simVectorMerging = b;
+}
+
+inline double
+aigpp::Settings::getGCRatio() const
+{
+    return _gcRatio;
+}
+
+inline void
+aigpp::Settings::setGCRatio(double d)
+{
+    _gcRatio = d;
+}
+
+inline int
+aigpp::Settings::getSATResetInterval() const
+{
+    return _satResetInterval;
+}
+
+inline void
+aigpp::Settings::setSATResetInterval(int m)
+{
+    _satResetInterval = m;
+}

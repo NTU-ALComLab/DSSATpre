@@ -1,0 +1,96 @@
+/**************************************************************
+ *
+ *       AIGPP Package // EdgeRef.icc
+ *
+ *	Author:
+ *         Florian Pigorsch
+ *	  University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *	Last revision:
+ *         $Revision: 205 $
+ *	  $Author: pigorsch $
+ *         $Date$
+ *
+ ***************************************************************/
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::Mux(const aigpp::EdgeRef& nodeThen, const aigpp::EdgeRef& nodeElse) const
+{
+    return (*this & nodeThen) | (!(*this) & nodeElse);
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::Xnor(const aigpp::EdgeRef& n) const
+{
+    return !(*this * !n) * !(n * !*this);
+}
+
+inline aigpp::EdgeRef aigpp::EdgeRef::operator!() const
+{
+    return EdgeRef(node(), !isInverted());
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::notIf(bool invert) const
+{
+    return (invert ? operator!() : *this);
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::operator&=(const aigpp::EdgeRef& n)
+{
+    *this = (*this & n);
+    return *this;
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::operator|=(const aigpp::EdgeRef& n)
+{
+    *this = (*this | n);
+    return *this;
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::operator^=(const aigpp::EdgeRef& n)
+{
+    *this = (*this ^ n);
+    return *this;
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::operator*=(const aigpp::EdgeRef& n)
+{
+    *this = (*this & n);
+    return *this;
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::operator+=(const aigpp::EdgeRef& n)
+{
+    *this = (*this | n);
+    return *this;
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::operator|(const aigpp::EdgeRef& n2) const
+{
+    return !(!(*this) & !n2);
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::operator^(const aigpp::EdgeRef& n2) const
+{
+    return (*this & !n2) | (n2 & !*this);
+}
+
+inline aigpp::EdgeRef aigpp::EdgeRef::operator*(const aigpp::EdgeRef& n2) const
+{
+    return (*this & n2);
+}
+
+inline aigpp::EdgeRef
+aigpp::EdgeRef::operator+(const aigpp::EdgeRef& n2) const
+{
+    return !(!(*this) & !n2);
+}

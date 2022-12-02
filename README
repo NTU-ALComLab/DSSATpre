@@ -1,0 +1,113 @@
+DSSATpre - (D)SSAT solver and preprocessor
+
+This is DSSATpre, a tool to solve and preprocess dependency stochastic
+Boolean satisfiability formulae. It is based on dependency elimination and
+the basic idea is to select a minimal set of dependencies to obtain a smallest
+SSAT formula with the same satisfying probability from a DSSAT formula, which
+may then be solved by any SSAT solver. It may also serve as a standalone 
+preprocessor for simplifying (D)SSAT formulae. It lifts many of the 
+preprocessing techniques that have been proposed in the literature for DQBF,
+such as BCP, equivalence checking, etc. It can be used both as a standalone 
+tool and as a library.
+
+------------------------------
+How to build DSSATpre
+
+DSSATpre is programmed in C++ and is suitable for Linux systems.
+Cmake is needed to build the tool.
+It requires the Boost C++ libraries, in particular
+    boost-program_options
+    boost-iostreams.
+libz is used to read gzip-compressed input files. The (integer) linear
+programming solver glpk is used for dependency elimination on DQBFs. 
+(Instructions for downloading glpk is available under 
+https://www.gnu.org/software/glpk/#TOCdownloading)
+Additionally doxygen and valgrind need to be installed.
+
+
+Additionally, a C++17 compatible compiler is required.
+
+Please unzip the downloaded folders.
+Enter folder DSSATpre/ and create a new folder named build by "mkdir build".
+Enter folder build/.
+Type "cmake ..". 
+(Other cmake options can be found under https://cmake.org/documentation/.)
+Now in build/ new folders and files have been created. 
+Enter the folder src/ in build/.
+Type "make".
+Now the binary for DSSATpre has been created in build/src/.
+
+------------------------------
+
+How to use DSSATpre
+
+To get help, call
+    ./DSSATpre --help
+
+To preprocess a formula, call DSSATpre with
+    ./DSSATpre <filename>
+where <filename> is the name of the input file in DSDIMACS or SDIMACS
+format.
+Additionally, the option "--stochastic 1" can be used to interpret
+file in DQDIMACS or QDIMACS format as (D)SSAT formula with universal
+variables substituted with randomized ones with probability 0.5.
+
+To convert a DSSAT formula to an SSAT formula, call DSSATpre with
+    ./DSSATpre --to_qbf dep <input_file> -o <output_file>
+
+The benchmarks used in the paper are placed in DSSATpre/benchmarks
+
+------------------------------
+
+This program is based on HQSpre, released under version 3 of the
+GNU Lesser General Public License
+(LGPL v3, see https://www.gnu.org/licenses/lgpl-3.0.en.html)
+
+HQSpre is retrieved from https://abs.informatik.uni-freiburg.de/src/projects_view.php?projectID=21
+
+--------------------------------------------------
+Original README for HQSpre:
+
+HQSpre - An Effective Preprocessor for QBF and QBF
+--------------------------------------------------
+
+Version 1.5 (2021-08-30)
+
+Copyright 2016-21 by
+    Ralf Wimmer, Sven Reimer, Paolo Marin, Bernd Becker
+    Albert-Ludwigs-Universitaet Freiburg
+    Georges-Koehler-Allee 51
+    79110 Freiburg im Breisgau
+    Germany
+    wimmer@informatik.uni-freiburg.de (Ralf Wimmer)
+
+This program is released under the version 3 of the
+GNU Lesser General Public License
+(LGPL v3, see https://www.gnu.org/licenses/lgpl-3.0.en.html)
+
+
+HQSpre requires the Boost C++ libraries, in particular
+    boost-program_options
+    boost-iostreams.
+libz is used to read gzip-compressed input files. The (integer) linear
+programming solver glpk is used for dependency elimination on DQBFs.
+
+Additionally, a C++14 compatible compiler is required.
+
+After successful compilation, the subdirectory src contains the binary
+hqspre. Calling
+    ./src/hqspre -h
+prints the list of available command line options.
+
+For bug reports, ideas for extension, comments, improvements etc. please
+contact Ralf Wimmer (wimmer@informatik.uni-freiburg.de).
+
+If you use HQSpre, please cite the following paper:
+
+    Ralf Wimmer, Sven Reimer, Paolo Marin, Bernd Becker:
+    HQSpre -- An Effective Preprocessor for QBF and DQBF.
+    Proceedings of the 23rd Int'l Conf. on Tools and Algorithms
+    for the Construction and Analysis of Systems (TACAS).
+    Lecture Notes in Computer Science, vol. 10205, pages 373-390.
+    Springer 2017. DOI 10.1007/978-3-662-54577-5_21
+

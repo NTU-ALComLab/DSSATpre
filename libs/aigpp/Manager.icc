@@ -1,0 +1,214 @@
+/**************************************************************
+ *
+ *       AIGPP Package // Manager.icc
+ *
+ *       Copyright (C) 2006 Florian Pigorsch
+ *
+ *	Author:
+ *         Florian Pigorsch
+ *	  University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *	Last revision:
+ *         $Revision: 717 $
+ *	  $Author: pigorsch $
+ *         $Date$
+ *
+ ***************************************************************/
+
+inline void
+aigpp::Manager::setVerbosity(int v)
+{
+    _verbosity = v;
+}
+
+inline int
+aigpp::Manager::verbosity() const
+{
+    return _verbosity;
+}
+
+inline std::size_t
+aigpp::Manager::variableCount() const
+{
+    return _variables.size();
+}
+
+inline const aigpp::EdgeRef&
+aigpp::Manager::getConst0() const
+{
+    return _const0;
+}
+
+inline const aigpp::EdgeRef&
+aigpp::Manager::getConst1() const
+{
+    return _const1;
+}
+
+inline bool
+aigpp::Manager::isVarIndexValid(std::size_t index) const
+{
+    return (index < variableCount());
+}
+
+inline aigpp::EdgeRef
+aigpp::Manager::variable(std::size_t index) const
+{
+    return EdgeRef(getExtRefTable(), variableInternal(index));
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::Manager::variableInternal(std::size_t index) const
+{
+    assert(isVarIndexValid(index));
+    return InternalEdgeRef(_variables[index]);
+}
+
+inline const std::string&
+aigpp::Manager::variableName(std::size_t index) const
+{
+    assert(isVarIndexValid(index));
+    return _variableNames[index];
+}
+
+inline std::size_t
+aigpp::Manager::nodeCount() const
+{
+    return _nodeCount;
+}
+inline std::size_t
+aigpp::Manager::deadNodeCount() const
+{
+    return _dead;
+}
+
+inline const aigpp::SimulationTable&
+aigpp::Manager::simtable() const
+{
+    return _simTable;
+}
+
+inline aigpp::SimulationTable&
+aigpp::Manager::simtable()
+{
+    return _simTable;
+}
+
+inline void
+aigpp::Manager::toggleBDDSweepingDuringQuantification(bool enable)
+{
+    _bddSweepingDuringQuantification = enable;
+}
+
+inline void
+aigpp::Manager::addToNodesList(aigpp::Node* n)
+{
+    /*
+    if( _nodes != 0 )
+    {
+      n->_nextNode = _nodes;
+      _nodes->_prevNode = n;
+    }
+    _nodes = n;
+    */
+
+    if (_lastNode != nullptr) {
+        assert(_lastNode->_nextNode == 0);
+        _lastNode->_nextNode = n;
+        n->_prevNode         = _lastNode;
+        n->_nextNode         = nullptr;
+        _lastNode            = n;
+    } else {
+        assert(_nodes == 0);
+        _nodes       = n;
+        n->_prevNode = nullptr;
+        n->_nextNode = nullptr;
+        _lastNode    = n;
+    }
+}
+
+inline void
+aigpp::Manager::removeFromNodesList(aigpp::Node* n)
+{
+    if (n != _lastNode) {
+        if (n != _nodes) {
+            n->_nextNode->_prevNode = n->_prevNode;
+            n->_prevNode->_nextNode = n->_nextNode;
+        } else {
+            n->_nextNode->_prevNode = nullptr;
+            _nodes                  = n->_nextNode;
+        }
+    } else {
+        if (n != _nodes) {
+            n->_prevNode->_nextNode = nullptr;
+            _lastNode               = n->_prevNode;
+        } else {
+            _nodes    = nullptr;
+            _lastNode = nullptr;
+        }
+    }
+
+    /*
+    if( n != _nodes )
+    {
+      if( n->_nextNode != 0 )
+      {
+        n->_prevNode->_nextNode = n->_nextNode;
+        n->_nextNode->_prevNode = n->_prevNode;
+      }
+      else
+      {
+        n->_prevNode->_nextNode = 0;
+      }
+    }
+    else
+    {
+      if( n->_nextNode != 0 )
+      {
+        n->_nextNode->_prevNode = 0;
+        _nodes = n->_nextNode;
+      }
+      else
+      {
+        _nodes = 0;
+      }
+    }
+    */
+}
+
+template <unsigned int FLAGS>
+inline bool
+aigpp::Manager::flagsLocked() const
+{
+    return (_flagsLocked & FLAGS) != 0;
+}
+
+template <unsigned int FLAGS>
+inline void
+aigpp::Manager::lockFlags() const
+{
+    assert(!flagsLocked<FLAGS>());
+
+    _flagsLocked |= FLAGS;
+}
+
+template <unsigned int FLAGS>
+inline void
+aigpp::Manager::unlockFlags() const
+{
+    _flagsLocked &= ~FLAGS;
+}
+
+inline int
+aigpp::Manager::nextIndex()
+{
+    assert(_nextIndex < INT_MAX);
+    return _nextIndex++;
+}
+
+inline aigpp::Node*
+aigpp::Manager::nodesList()
+{
+    return _nodes;
+}

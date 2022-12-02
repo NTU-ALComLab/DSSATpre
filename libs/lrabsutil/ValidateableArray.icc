@@ -1,0 +1,246 @@
+template<typename T>
+inline
+lrabs::ValidateableArray<T>::
+ValidateableArray()
+    :currentTimeStamp_( 1 ),
+     capacity_( 1024 ),
+     size_( 0 ),
+     data_( new T[capacity_] ),
+     timeStamps_( new unsigned int[capacity_] )
+{}
+
+template<typename T>
+inline
+lrabs::ValidateableArray<T>::
+ValidateableArray( unsigned int size )
+    :currentTimeStamp_( 1 ),
+     capacity_( ( size <= 1024 ) ? 1024 : size ),
+     size_( size ),
+     data_( new T[capacity_] ),
+     timeStamps_( new unsigned int[capacity_] )
+{
+    for( unsigned int i = 0; i != size_; ++i )
+    {
+        timeStamps_[i] = 0;
+    }
+}
+
+template<typename T>
+inline
+lrabs::ValidateableArray<T>::
+ValidateableArray( const lrabs::ValidateableArray<T>& a )
+    :currentTimeStamp_( a.currentTimeStamp_ ),
+     capacity_( ( a.size_ <= 1024 ) ? 1024 : a.size_ ),
+     size_( a.size_ ),
+     data_( new T[ capacity_ ] ),
+     timeStamps_( new unsigned int[ capacity_ ] )
+{
+    for( unsigned int i = 0; i != size_; ++i )
+    {
+        data_[i] = a.data_[i];
+    }
+    for( unsigned int i = 0; i != size_; ++i )
+    {
+        timeStamps_[i] = a.timeStamps_[i];
+    }
+}
+
+template<typename T>
+inline
+lrabs::ValidateableArray<T>::
+~ValidateableArray()
+{
+    delete[] timeStamps_;
+    delete[] data_;
+}
+
+template<typename T>
+inline
+lrabs::ValidateableArray<T>& 
+lrabs::ValidateableArray<T>::
+operator=( const lrabs::ValidateableArray<T>& a )
+{
+    if( capacity_ >= a.size_ )
+    {
+        size_ = a.size_;
+        currentTimeStamp_ = a.currentTimeStamp_;
+        
+        for( unsigned int i = 0; i != size_; ++i )
+        {
+            data_[i] = a.data_[i];
+        }
+        for( unsigned int i = 0; i != size_; ++i )
+        {
+            timeStamps_[i] = a.timeStamps_[i];
+        }
+
+        return *this;
+    }
+    else
+    {
+        delete[] timeStamps_;
+        delete[] data_;
+        
+        capacity_ = ( ( a.size_ <= 1024 ) ? 1024 : a.size_ );
+        size_ = a.size_;
+        currentTimeStamp_ = a.currentTimeStamp_;
+        
+        data_ = new int[capacity_];
+        timeStamps_ = new int[capacity_];
+        
+        for( unsigned int i = 0; i != size_; ++i )
+        {
+            data_[i] = a.data_[i];
+        }
+        for( unsigned int i = 0; i != size_; ++i )
+        {
+            timeStamps_[i] = a.timeStamps_[i];
+        }
+
+        return *this;
+    }
+}
+
+template<typename T>
+inline
+unsigned int 
+lrabs::ValidateableArray<T>::
+size() const
+{
+    return size_;
+}
+
+template<typename T>
+inline
+void
+lrabs::ValidateableArray<T>::
+clear()
+{
+    currentTimeStamp_ = 1;
+    size_ = 0;
+}
+
+template<typename T>
+inline
+void
+lrabs::ValidateableArray<T>::
+invalidate()
+{
+    unsigned int oldTimeStamp = currentTimeStamp_;
+    ++currentTimeStamp_;
+
+    /* overflow */
+    if( currentTimeStamp_ < oldTimeStamp )
+    {
+        currentTimeStamp_ = 1;
+        for( unsigned int i = 0; i != size_; ++i )
+        {
+            timeStamps_[i] = 0;
+        }
+    }
+}
+
+template<typename T>
+inline
+void
+lrabs::ValidateableArray<T>::
+resize( unsigned int size )
+{
+    if( size <= size_ )
+    {
+        size_ = size;
+    }
+    else if( size <= capacity_ )
+    {
+        for( unsigned int i = size_; i != size; ++i )
+        {
+            timeStamps_[i] = 0;
+        }
+
+        size_ = size;
+    }
+    else
+    {
+        T* newData = new T[size];
+        unsigned int* newTimeStamps = new unsigned int[size];
+
+        for( unsigned int i = 0; i != size_; ++i )
+        {
+            newData[i] = data_[i];
+        }
+        for( unsigned int i = 0; i != size_; ++i )
+        {
+            newTimeStamps[i] = timeStamps_[i];
+        }
+        for( unsigned int i = size_; i != size; ++i )
+        {
+            newTimeStamps[i] = 0;
+        }
+
+        delete[] timeStamps_;
+        delete[] data_;
+
+        data_ = newData;
+        timeStamps_ = newTimeStamps;
+
+        capacity_ = size;
+        size_ = size;
+    }
+}
+
+template<typename T>
+inline
+bool
+lrabs::ValidateableArray<T>::
+isValid( unsigned int index ) const
+{
+    return timeStamps_[index] == currentTimeStamp_;
+}
+
+template<typename T>
+inline
+const T&
+lrabs::ValidateableArray<T>::
+getItem( unsigned int index ) const
+{
+    return data_[index];
+}
+
+template<typename T>
+inline
+void
+lrabs::ValidateableArray<T>::
+setItem( unsigned int index, const T& value )
+{
+    data_[index] = value;
+    timeStamps_[index] = currentTimeStamp_;
+}
+
+template<typename T>
+inline
+void
+lrabs::ValidateableArray<T>::
+invalidateItem( unsigned int index )
+{
+    timeStamps_[index] = 0;
+}
+
+template<typename T>
+inline
+bool
+lrabs::ValidateableArray<T>::
+operator==( const lrabs::ValidateableArray<T>& a ) const
+{
+    if( size_ != a.size_ ) return false;
+
+    for( unsigned int i = 0; i != size_; ++i )
+    {
+        if( isValid( i ) && a.isValid( i ) )
+        {
+            if( get( i ) != a.get(i) ) return false;
+        }
+        else if( isValid( i ) != a.isValid( i ) ) return false;
+    }
+
+    return true;
+}

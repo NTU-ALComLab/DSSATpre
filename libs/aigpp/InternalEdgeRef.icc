@@ -1,0 +1,98 @@
+/**************************************************************
+ *
+ *       AIGPP Package // InternalEdgeRef.icc
+ *
+ *       Copyright (C) 2006 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 276 $
+ *         $Author: pigorsch $
+ *
+ ***************************************************************/
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::Mux(const aigpp::InternalEdgeRef& nodeThen, const aigpp::InternalEdgeRef& nodeElse) const
+{
+    // return (*this & nodeThen) | (!(*this) & nodeElse);
+    return (!*this + nodeThen) * (*this + nodeElse);
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::Xnor(const aigpp::InternalEdgeRef& n) const
+{
+    return !(*this * (!n)) * !(n * (!(*this)));
+}
+
+inline aigpp::InternalEdgeRef aigpp::InternalEdgeRef::operator!() const
+{
+    return InternalEdgeRef(node(), !isInverted());
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::notIf(bool invert) const
+{
+    return (invert ? !(*this) : *this);
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::operator&=(const aigpp::InternalEdgeRef& n)
+{
+    *this = (*this & n);
+    return *this;
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::operator|=(const aigpp::InternalEdgeRef& n)
+{
+    *this = (*this | n);
+    return *this;
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::operator^=(const aigpp::InternalEdgeRef& n)
+{
+    *this = (*this ^ n);
+    return *this;
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::operator*=(const aigpp::InternalEdgeRef& n)
+{
+    *this = (*this & n);
+    return *this;
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::operator+=(const aigpp::InternalEdgeRef& n)
+{
+    *this = (*this | n);
+    return *this;
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::operator|(const aigpp::InternalEdgeRef& n2) const
+{
+    return !((!(*this)) & (!n2));
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::operator^(const aigpp::InternalEdgeRef& n2) const
+{
+    return (*this & (!n2)) | (n2 & (!*this));
+}
+
+inline aigpp::InternalEdgeRef aigpp::InternalEdgeRef::operator*(const aigpp::InternalEdgeRef& n2) const
+{
+    return (*this & n2);
+}
+
+inline aigpp::InternalEdgeRef
+aigpp::InternalEdgeRef::operator+(const aigpp::InternalEdgeRef& n2) const
+{
+    return !((!(*this)) & (!n2));
+}

@@ -1,0 +1,270 @@
+/**************************************************************
+ *
+ *       AIGPP Package // NodeHashMap.icc
+ *
+ *       Copyright (C) 2007 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 717 $
+ *         $Author: pigorsch $
+ *
+ ***************************************************************/
+
+namespace aigpp {
+template <>
+inline void
+aigpp::NodeHashMapEntry<InternalEdgeRef>::clearValue()
+{
+    value.clear();
+}
+
+template <>
+inline void
+aigpp::NodeHashMapEntry<std::pair<InternalEdgeRef, InternalEdgeRef>>::clearValue()
+{
+    value.first.clear();
+    value.second.clear();
+}
+}  // namespace aigpp
+
+template <typename VALUE, int FLAG, int CLEARFLAG>
+inline aigpp::NodeHashMap<VALUE, FLAG, CLEARFLAG>::NodeHashMap() :
+    _primesIndex(0),
+    _tableSize(PowerPrimes[_primesIndex]),
+    _table(new Entry*[_tableSize]),
+    _entries(0),
+    _freeEntries()
+{
+    /* clear table */
+    std::fill(_table, _table + _tableSize, (Entry*)nullptr);
+}
+
+template <typename VALUE, int FLAG, int CLEARFLAG>
+inline aigpp::NodeHashMap<VALUE, FLAG, CLEARFLAG>::~NodeHashMap()
+{
+    assert(_entries == 0);
+    delete[] _table;
+
+    while (!_freeEntries.empty()) {
+        delete _freeEntries.top();
+        _freeEntries.pop();
+    }
+}
+
+template <typename VALUE, int FLAG, int CLEARFLAG>
+inline void
+aigpp::NodeHashMap<VALUE, FLAG, CLEARFLAG>::insert(aigpp::Node* key, const VALUE& value)
+{
+    assert(key != 0);
+
+    if (static_cast<double>(_entries) > 0.75 * static_cast<double>(_tableSize)) {
+        resize(_primesIndex + 1);
+    }
+
+    Entry** tableentry = _table + index(key);
+
+    /* no entry found with equal hash */
+    if (*tableentry == nullptr) {
+        ++_entries;
+
+        Entry* newentry;
+        if (!_freeEntries.empty()) {
+            newentry = _freeEntries.top();
+            _freeEntries.pop();
+            newentry->key   = key;
+            newentry->value = value;
+            newentry->next  = nullptr;
+        } else {
+            newentry = new Entry(key, value, nullptr);
+        }
+
+        *tableentry = newentry;
+
+        key->setFlag<FLAG>();
+    }
+    /* entry found with equal hash */
+    else {
+        /* key is in cache -> search entry with equal key */
+        if (key->flag<FLAG>()) {
+            for (Entry* entry = *tableentry; entry != nullptr; entry = entry->next) {
+                if (entry->key == key) {
+                    entry->value = value;
+                    return;
+                }
+            }
+
+            NEVER_GET_HERE;
+        }
+        /* key is not in cache -> add new entry */
+        else {
+            ++_entries;
+
+            Entry* newentry;
+            if (!_freeEntries.empty()) {
+                newentry = _freeEntries.top();
+                _freeEntries.pop();
+                newentry->key   = key;
+                newentry->value = value;
+                newentry->next  = *tableentry;
+            } else {
+                newentry = new Entry(key, value, *tableentry);
+            }
+
+            *tableentry = newentry;
+
+            key->setFlag<FLAG>();
+        }
+    }
+}
+
+template <typename VALUE, int FLAG, int CLEARFLAG>
+inline const VALUE&
+aigpp::NodeHashMap<VALUE, FLAG, CLEARFLAG>::lookup(aigpp::Node* key) const
+{
+    assert(key != 0);
+    assert(key->flag<FLAG>());
+
+    Entry** tableentry = _table + index(key);
+
+    /* no entry found with equal hash */
+    assert(*tableentry != 0);
+
+    /* search entry with equal key */
+    for (Entry* entry = *tableentry; entry != nullptr; entry = entry->next) {
+        if (entry->key == key) {
+            return entry->value;
+        }
+    }
+
+    /* key not found */
+    NEVER_GET_HERE;
+    /* just a dummy return value to suppress compiler warnings: */
+    return _freeEntries.top()->value;
+}
+
+template <typename VALUE, int FLAG, int CLEARFLAG>
+inline void
+aigpp::NodeHashMap<VALUE, FLAG, CLEARFLAG>::remove(aigpp::Node* key)
+{
+    assert(key != 0);
+    assert(key->flag<FLAG>());
+
+    Entry** tableentry = _table + index(key);
+
+    /* no entry found with equal hash */
+    if (*tableentry == nullptr) {
+        NEVER_GET_HERE;
+    }
+    /* entry found with equal hash */
+    else {
+        Entry* prev  = nullptr;
+        Entry* entry = *tableentry;
+
+        /* search entry with equal key */
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                --_entries;
+
+                if (prev != nullptr) {
+                    prev->next = entry->next;
+                } else {
+                    *tableentry = entry->next;
+                }
+
+                key->unsetFlag<(FLAG | CLEARFLAG)>();
+
+                entry->clearValue();
+                _freeEntries.push(entry);
+
+                return;
+            }
+
+            prev  = entry;
+            entry = entry->next;
+        }
+
+        /* key not found */
+        NEVER_GET_HERE;
+        return;
+    }
+}
+
+template <typename VALUE, int FLAG, int CLEARFLAG>
+inline void
+aigpp::NodeHashMap<VALUE, FLAG, CLEARFLAG>::clear()
+{
+    Entry* entry;
+
+    for (std::size_t i = 0; i < _tableSize; ++i) {
+        for (entry = _table[i]; entry != nullptr; entry = entry->next) {
+            entry->key->template unsetFlag<FLAG | CLEARFLAG>();
+        }
+    }
+
+    for (std::size_t i = 0; i < _tableSize; ++i) {
+        entry = _table[i];
+
+        while (entry != nullptr) {
+            entry->clearValue();
+            _freeEntries.push(entry);
+            entry = entry->next;
+        }
+    }
+
+    _entries = 0;
+
+    std::fill(_table, _table + _tableSize, (Entry*)nullptr);
+}
+
+template <typename VALUE, int FLAG, int CLEARFLAG>
+inline void
+aigpp::NodeHashMap<VALUE, FLAG, CLEARFLAG>::resize(int newPrimesIndex)
+{
+    if (newPrimesIndex >= NumPowerPrimes || newPrimesIndex == _primesIndex) {
+        return;
+    }
+
+    std::size_t oldTableSize = _tableSize;
+
+    _primesIndex = newPrimesIndex;
+    _tableSize   = PowerPrimes[_primesIndex];
+
+    Entry** newtable = new Entry*[_tableSize];
+    std::fill(newtable, newtable + _tableSize, (Entry*)nullptr);
+
+    Entry** tableentry = _table;
+
+    for (std::size_t i = 0; i < oldTableSize; ++i, ++tableentry) {
+        if (*tableentry == nullptr) {
+            continue;
+        }
+
+        Entry* entry = *tableentry;
+
+        while (entry != nullptr) {
+            Entry* next = entry->next;
+
+            Entry** newtableentry = newtable + index(entry->key);
+
+            entry->next    = *newtableentry;
+            *newtableentry = entry;
+
+            entry = next;
+        }
+    }
+
+    delete[] _table;
+    _table = newtable;
+}
+
+template <typename VALUE, int FLAG, int CLEARFLAG>
+inline std::size_t
+aigpp::NodeHashMap<VALUE, FLAG, CLEARFLAG>::index(aigpp::Node* key) const
+{
+    return ((((uintptr_t)key) >> 2) % _tableSize);
+}

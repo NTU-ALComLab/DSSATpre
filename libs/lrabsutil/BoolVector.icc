@@ -1,0 +1,49 @@
+/**************************************************************
+ *       
+ *       LRABS // BoolVector.icc
+ *
+ *       Copyright (C) 2007 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 236 $
+ *         $Author: pigorsch $
+ *         $Date$
+ *
+ ***************************************************************/
+
+inline
+std::size_t
+lrabs::BoolVector::
+size() const
+{
+    return _size;
+}
+
+inline
+bool
+lrabs::BoolVector::
+uninitialized() const
+{
+    return _bins == 0;
+}
+
+inline
+bool 
+lrabs::BoolVector::
+get( std::size_t index ) const
+{
+    return ( _bins[ ( index / BinSize ) ] >> ( index % BinSize ) ) & 1ul;
+}
+
+inline
+void
+lrabs::BoolVector::
+setBin( std::size_t index, lrabs::BoolVector::BinType b )
+{
+    _bins[ index ] = b;
+}

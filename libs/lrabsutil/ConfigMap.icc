@@ -1,0 +1,105 @@
+/**************************************************************
+ *       
+ *       LRABS // ConfigMap.icc
+ *
+ *       Copyright (C) 2006, 2007 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 236 $
+ *         $Author: pigorsch $
+ *         $Date$
+ *
+ ***************************************************************/
+
+namespace lrabs
+{
+    template<typename T>
+    inline
+    void
+    ConfigMap::
+    setValue( const std::string& key, const T& value )
+    {
+        if( hasKey( key ) )
+        {
+            std::cout << "WARNING: setValue<T>, key \"" << key << "\" already exists in the map" << std::endl;
+        }
+        
+        operator[]( key ) = toString( value );
+    }
+    
+    template<typename T>
+    inline
+    T 
+    ConfigMap::
+    getValue( const std::string& key ) const
+    {
+        const_iterator p = find( key );
+        
+        if( p == end() )
+        {
+            Exception e;
+            e << "ERROR: getValue<T>, key \"" << key << "\" not found in map";
+            throw e;
+        }
+        
+        return fromString<T>( p->second );
+    }
+    
+    template<typename T>
+    inline
+    T
+    ConfigMap::
+    getValue( const std::string& key, const std::map<std::string, T>& mapping ) const
+    {
+        std::string value = getValue<std::string>( key );
+        
+        typename std::map<std::string, T>::const_iterator p = mapping.find( value );
+        if( p == mapping.end() )
+        {
+            Exception e;
+            e << "ERROR: getValue, value \"" << key << "\" not found in mapping";
+            throw e;
+        }
+        
+        return p->second;
+    }
+    
+    template<typename T>
+    inline
+    bool
+    ConfigMap::
+    getValue( const std::string& key, T& target ) const
+    {
+        if( hasKey( key ) )
+        {
+            target = getValue<T>( key );
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    template<typename T>
+    inline
+    bool
+    ConfigMap::
+    getValue( const std::string& key, const std::map<std::string, T>& mapping, T& target ) const
+    {
+        if( hasKey( key ) )
+        {
+            target = getValue<T>( key, mapping );
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}

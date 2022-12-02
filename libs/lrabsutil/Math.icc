@@ -1,0 +1,69 @@
+/**************************************************************
+*       
+*       LRABS // Math.icc
+*
+*       Copyright (C) 2007 Florian Pigorsch
+*
+*       Author:
+*         Florian Pigorsch
+*         University of Freiburg
+*         pigorsch@informatik.uni-freiburg.de
+*
+*       Last revision:
+*         $Revision: 156 $
+*         $Author: pigorsch $
+*         $Date$
+*
+***************************************************************/
+
+template<typename T>
+inline
+T lrabs::abs( const T& t )
+{
+  return( t >= 0 ? t : -t );
+}
+
+template<typename T>
+inline
+const T& lrabs::max( const T& t1, const T& t2 )
+{
+  return( t1 >= t2 ? t1 : t2 );
+}
+
+template<typename T>
+inline
+const T& lrabs::max( const T& t1, const T& t2, const T& t3 )
+{
+  return max( max( t1, t2 ), t3 );
+}
+
+template<typename T>
+inline
+const T& lrabs::min( const T& t1, const T& t2 )
+{
+  return( t1 <= t2 ? t1 : t2 );
+}
+
+template<typename T>
+inline
+const T& lrabs::min( const T& t1, const T& t2, const T& t3 )
+{
+  return min( min( t1, t2 ), t3 );
+}
+
+template<typename T>
+inline
+unsigned int
+lrabs::countOnes( T v )
+{
+    unsigned int c = 0;
+
+    for( ; v ; ++c ) { { { v &= v - 1;
+}
+}
+}
+
+    return c;
+}
+
+        

@@ -1,0 +1,58 @@
+/**************************************************************
+ *
+ *       AIGPP Package // VarSupport.icc
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 717 $
+ *         $Author: pigorsch $
+ *
+ ***************************************************************/
+
+inline aigpp::VarSupport::VarSupport() : _support()
+{}
+
+inline aigpp::VarSupport::VarSupport(std::size_t var) : _support(1 + (var / MaskSize), 0ul)
+{
+    _support[var / MaskSize] = (1ul << (var % MaskSize));
+}
+
+inline std::size_t
+aigpp::VarSupport::size() const
+{
+    return _support.size();
+}
+
+inline bool
+aigpp::VarSupport::hasVar(std::size_t index) const
+{
+    if (index >= size() * MaskSize) return false;
+
+    return _support[index / MaskSize] & (1ul << (index % MaskSize));
+}
+
+inline void
+aigpp::VarSupport::addVar(std::size_t index)
+{
+    if ((index / MaskSize) >= size()) {
+        _support.resize(1 + (index / MaskSize), 0ul);
+    }
+
+    _support[index / MaskSize] |= (1ul << (index % MaskSize));
+}
+
+inline bool
+aigpp::VarSupport::operator==(const aigpp::VarSupport& s) const
+{
+    return _support == s._support;
+}
+
+inline bool
+aigpp::VarSupport::operator!=(const aigpp::VarSupport& s) const
+{
+    return _support != s._support;
+}

@@ -1,0 +1,91 @@
+/**************************************************************
+ *
+ *       AIGPP Package // InternalEdgeRef.icc
+ *
+ *       Copyright (C) 2007 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 509 $
+ *         $Author: pigorsch $
+ *
+ ***************************************************************/
+
+inline aigpp::Edge::Edge() : _node(nullptr)
+{}
+
+inline aigpp::Edge::Edge(aigpp::Node* n, bool i) : _node((Node*)(i ? ((uintptr_t)(n) | (uintptr_t)1) : (uintptr_t)(n)))
+{}
+
+inline aigpp::Node*
+aigpp::Edge::node() const
+{
+    return (Node*)((uintptr_t)(_node) & ~(uintptr_t)1);
+}
+
+inline bool
+aigpp::Edge::isInverted() const
+{
+    return (uintptr_t)(_node) & (uintptr_t)1;
+}
+
+inline bool
+aigpp::Edge::isConstant() const
+{
+    return !((uintptr_t)(_node) & ~(uintptr_t)1);
+}
+
+inline void
+aigpp::Edge::setNode(aigpp::Node* n)
+{
+    _node = (Node*)(isInverted() ? ((uintptr_t)(n) | (uintptr_t)1) : (uintptr_t)(n));
+}
+
+inline void
+aigpp::Edge::setInverted(bool i)
+{
+    _node = (Node*)(i ? ((uintptr_t)(_node) | (uintptr_t)1) : ((uintptr_t)(_node) & ~(uintptr_t)1));
+}
+
+inline void
+aigpp::Edge::toggleInverted()
+{
+    _node = (Node*)((uintptr_t)(_node) ^ (uintptr_t)1);
+}
+
+inline void
+aigpp::Edge::toggleInverted(bool invert)
+{
+    if (invert) {
+        toggleInverted();
+    }
+}
+
+inline void
+aigpp::Edge::swap(aigpp::Edge& e)
+{
+    std::swap(_node, e._node);
+}
+
+inline void
+aigpp::Edge::clear()
+{
+    _node = nullptr;
+}
+
+inline aigpp::Edge aigpp::Edge::operator!() const
+{
+    Edge result = *this;
+    result.toggleInverted();
+    return result;
+}
+
+inline aigpp::Edge
+aigpp::Edge::notIf(bool invert) const
+{
+    return (invert ? !(*this) : *this);
+}

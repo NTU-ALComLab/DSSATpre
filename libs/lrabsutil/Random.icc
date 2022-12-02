@@ -1,0 +1,85 @@
+/**************************************************************
+ *       
+ *       LRABS // Random.icc
+ *
+ *       Copyright (C) 2006 Florian Pigorsch
+ *
+ *       Author:
+ *         Florian Pigorsch
+ *         University of Freiburg
+ *         pigorsch@informatik.uni-freiburg.de
+ *
+ *       Last revision:
+ *         $Revision: 711 $
+ *         $Author: pigorsch $
+ *         $Date$
+ *
+ ***************************************************************/
+
+inline
+unsigned int 
+lrabs::Random::
+getUInt()
+{
+    /*      10987654321098765432109876543210 */
+    /* r1 =  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
+    /* r2 = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  */
+    unsigned int r1 = getRawRandom();
+    unsigned int r2 = getRawRandom();
+    return r1 ^ ( r2 << 1 );
+}
+
+inline
+unsigned int
+lrabs::Random::
+getUInt( unsigned int max )
+{
+    return getUInt() % max;
+}
+
+#if __WORDSIZE == 32
+
+/* unsigned long is 32 bit */
+inline
+unsigned long 
+lrabs::Random::
+getULong()
+{
+    return getUInt();
+}
+
+#else
+
+/* unsigned long is 64 bit */
+inline
+unsigned long
+lrabs::Random::
+getULong()
+{
+    /*      3210987654321098765432109876543210987654321098765432109876543210 */
+    /* r1 =                                  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
+    /* r2 =   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                                */
+    /* r3 = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                                  */
+    unsigned long r1 = (unsigned long)getRawRandom();
+    unsigned long r2 = (unsigned long)getRawRandom() << 31;
+    unsigned long r3 = (unsigned long)getRawRandom() << 33;
+    return r1 ^ r2 ^ r3;
+}
+
+#endif
+
+inline
+unsigned long 
+lrabs::Random::
+getULong( unsigned long max )
+{
+    return getULong() % max;
+}
+
+inline
+unsigned int
+lrabs::Random::
+getRawRandom()
+{
+    return (unsigned int)rand_r( &_seed );
+}
