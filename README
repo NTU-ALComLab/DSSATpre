@@ -57,6 +57,11 @@ To convert a DSSAT formula to an SSAT formula, call DSSATpre with
 
 The benchmarks used in the paper are placed in DSSATpre/benchmarks
 
+If you use DSSATpre, please cite the following paper:
+
+    C. Cheng and J.-H. R. Jiang, ‘Lifting (D)QBF Preprocessing and Solving Techniques to (D)SSAT’,
+    in Proceedings of the AAAI Conference on Artificial Intelligence, 2023.
+
 ------------------------------
 
 This program is based on HQSpre, released under version 3 of the
