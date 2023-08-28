@@ -55,11 +55,9 @@ variables substituted with randomized ones with probability 0.5.
 To convert a DSSAT formula to an SSAT formula, call DSSATpre with
     ./DSSATpre --to_qbf dep <input_file> -o <output_file>
 
-The benchmarks used in the paper are placed in DSSATpre/benchmarks
-
 If you use DSSATpre, please cite the following paper:
 
-    Cheng, Che, and Jie-Hong R. Jiang. "Lifting (D) QBF Preprocessing and Solving Techniques to (D) SSAT."
+    Cheng, Che, and Jie-Hong R. Jiang. "Lifting (D)QBF Preprocessing and Solving Techniques to (D)SSAT."
     In Proceedings of the AAAI Conference on Artificial Intelligence, vol. 37, no. 4, pp. 3906-3914. 2023.
 
 ------------------------------
