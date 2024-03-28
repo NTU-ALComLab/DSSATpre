@@ -440,6 +440,10 @@ Formula::checkSAT()
 
         std::copy_if(_clauses[c_nr].cbegin(), _clauses[c_nr].cend(), std::back_inserter(clause),
                      [this](Literal lit) -> bool { return isExistential(lit2var(lit)); });
+        if (clause.empty() && _prefix->isStochastic()) {
+            VLOG(2) << __FUNCTION__ << ": empty clause detected.";
+            return;
+        }
         sat_solver.addClause(clause);
         clause.clear();
     }
